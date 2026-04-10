@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model category {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String              @db.VarChar(100)
+  description       String?
+  category_question category_question[]
+  subcategory       subcategory[]
+  todo_list         todo_list[]
+}
+
+model category_answer {
+  id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category_question_id String?            @db.Uuid
+  answer_text          String
+  recommended_content  Json?              @default("{}")
+  category_question    category_question? @relation(fields: [category_question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model category_question {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category_id     String?           @db.Uuid
+  question_text   String
+  category_answer category_answer[]
+  category        category?         @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model global_answer {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  question_id     String?          @db.Uuid
+  answer_text     String
+  score_matrix    Json?            @default("{}")
+  global_question global_question? @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model global_question {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  question_text String
+  global_answer global_answer[]
+}
+
+model resource {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subcategory_id String?      @db.Uuid
+  title          String       @db.VarChar(255)
+  type           String?      @db.VarChar(50)
+  text_content   String?
+  media_url      String?
+  subcategory    subcategory? @relation(fields: [subcategory_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model subcategory {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category_id String?    @db.Uuid
+  name        String     @db.VarChar(100)
+  description String?
+  resource    resource[]
+  category    category?  @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model todo_list {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String?          @db.Uuid
+  category_id    String?          @db.Uuid
+  title          String?          @db.VarChar(255)
+  created_at     DateTime?        @default(now()) @db.Timestamptz(6)
+  category       category?        @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users          users?           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  todo_list_task todo_list_task[]
+}
+
+model todo_list_task {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  todo_list_id   String?    @db.Uuid
+  description    String
+  scheduled_date DateTime?  @db.Timestamptz(6)
+  is_completed   Boolean?   @default(false)
+  todo_list      todo_list? @relation(fields: [todo_list_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_profile {
+  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String? @unique @db.Uuid
+  category_scores Json?   @default("{}")
+  quizz_statuses  Json?   @default("{}")
+  users           users?  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model users {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email         String        @unique @db.VarChar(255)
+  password_hash String        @db.VarChar(255)
+  firstname     String?       @db.VarChar(100)
+  lastname      String?       @db.VarChar(100)
+  birthdate     DateTime?     @db.Date
+  created_at    DateTime?     @default(now()) @db.Timestamptz(6)
+  todo_list     todo_list[]
+  user_profile  user_profile?
+}

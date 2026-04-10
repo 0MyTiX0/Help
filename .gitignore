@@ -1,5 +1,7 @@
 node_modules
 .next
 out
-.env*.local
+.env*
 *.tsbuildinfo
+
+/src/generated/prisma
