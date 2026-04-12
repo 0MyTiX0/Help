@@ -1,12 +1,12 @@
-# Projet React en TypeScript (Next.js) avec Prisma
+# Help - Next.js + Prisma + Auth
 
-Projet Next.js + React + TypeScript avec une base de données PostgreSQL hébergée sur VPS et gérée par Prisma.
+Application Next.js (App Router) avec authentification par identifiants, Prisma ORM et PostgreSQL distant via tunnel SSH.
 
-## Prerequis
+## Prérequis
 
-- Node.js 20 ou plus recent
+- Node.js 20+
 - npm
-- Accès SSH au VPS (clés SSH configurées)
+- Accès SSH au serveur VPS
 
 ## Installation
 
@@ -14,89 +14,105 @@ Projet Next.js + React + TypeScript avec une base de données PostgreSQL héberg
 npm install
 ```
 
-## Configuration de la base de données
+## Variables d'environnement
 
-### Tunnel SSH vers le VPS
+Créer ou vérifier le fichier `.env` à la racine :
 
-Comme le port PostgreSQL est bloqué sur le VPS, un tunnel SSH est nécessaire pour se connecter en local.
+```env
+DATABASE_URL="postgresql://help_admin:...@localhost:5432/help_db?schema=public"
+NEXTAUTH_URL="http://localhost:3000"
+BETTER_AUTH_SECRET="..."
+```
 
-**Avant de lancer l'application, démarrez le tunnel SSH dans un terminal dédié :**
+`DATABASE_URL` pointe vers `localhost:5432` car la connexion passe par un tunnel SSH local.
+
+## Tunnel SSH (obligatoire en dev)
+
+Lancer dans un terminal dédié :
 
 ```bash
 npm run ssh-tunnel
 ```
 
-Cette commande :
+Script utilisé (`package.json`) :
 
-- Établit une connexion SSH sécurisée vers le VPS (root@192.162.71.191)
-- Redirige le port local 5432 vers le serveur PostgreSQL distant
-- Reste active en arrière-plan (utilise `-N` pour n'exécuter aucune commande distante)
-
-Le tunnel doit rester ouvert tant que vous travaillez en développement.
-
-### Variables d'environnement
-
-Le fichier `.env` contient la chaîne de connexion à la base de données :
-
-```
-DATABASE_URL="postgresql://help_admin:...@localhost:5432/help_db?schema=public"
+```bash
+ssh -L 5432:localhost:5432 root@192.162.71.191 -N
 ```
 
-Cette URL utilise `localhost:5432` car le tunnel SSH redirige vers le serveur distant.
+### Vérifier que le tunnel fonctionne
 
-### Prisma
+Dans un autre terminal PowerShell :
 
-Prisma est utilisé pour la gestion du schéma et des migrations.
+```powershell
+Test-NetConnection localhost -Port 5432
+```
 
-**Générer le Prisma Client :**
+Attendu : `TcpTestSucceeded : True`.
+
+## Prisma (v7)
+
+Le projet utilise Prisma 7 avec configuration explicite dans `prisma.config.ts`.
+
+Fichier de config :
+
+- charge `.env` via `import "dotenv/config"`
+- expose `datasource.url` via `env("DATABASE_URL")`
+
+Le client Prisma est généré avec `driverAdapters` dans `prisma/schema.prisma` et instancié avec l'adapter PostgreSQL dans `src/lib/prisma.ts` (`@prisma/adapter-pg` + `pg`).
+
+### Commandes utiles
 
 ```bash
 npx prisma generate
-```
-
-**Exécuter les migrations :**
-
-```bash
-npx prisma migrate dev
-```
-
-**Consulter les données (Prisma Studio) :**
-
-```bash
+npx prisma db pull
 npx prisma studio
 ```
 
-## Lancer en developpement
+## Authentification
 
-**Terminal 1 - Démarrez le tunnel SSH :**
+### Pages
+
+- `GET /auth/login`
+- `GET /auth/register`
+
+### API
+
+- `POST /api/auth/register` : création utilisateur + hash mot de passe (`bcrypt`)
+- `GET/POST /api/auth/[...nextauth]` : NextAuth Credentials provider
+
+### Flux
+
+1. Inscription via `/auth/register`
+2. Redirection vers `/auth/login?registered=true`
+3. Connexion Credentials
+4. Redirection vers `/profile`
+
+## Lancement en développement
+
+Terminal 1 :
 
 ```bash
 npm run ssh-tunnel
 ```
 
-**Terminal 2 - Lancez l'application :**
+Terminal 2 :
 
 ```bash
 npm run dev
 ```
 
-Puis ouvrez http://localhost:3000
+Application : http://localhost:3000
 
-## Build de production
+## Build / Start
 
 ```bash
 npm run build
-```
-
-## Lancer en production
-
-```bash
 npm run start
 ```
 
-## Dépendances principales
+## Dépannage rapide
 
-- **Next.js** : framework React
-- **Prisma** : ORM PostgreSQL
-- **TypeScript** : typage statique
-- **PostgreSQL** : base de données (sur VPS)
+- `The datasource.url property is required...` : vérifier `prisma.config.ts` et `dotenv`.
+- `Using engine type "client" requires either "adapter"...` : vérifier l'instanciation dans `src/lib/prisma.ts` (adapter PrismaPg requis).
+- Échec `db pull` avec tunnel actif : vérifier identifiants DB, droits utilisateur PostgreSQL et disponibilité du port distant.
