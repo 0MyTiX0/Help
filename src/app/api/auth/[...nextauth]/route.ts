@@ -2,6 +2,13 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
+import { z } from "zod";
+import { checkRateLimit } from "../../../../lib/rate-limit";
+
+const loginSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Format d'email invalide"),
+  password: z.string().min(1, "Mot de passe requis"),
+});
 
 const handler = NextAuth({
   providers: [
@@ -11,15 +18,27 @@ const handler = NextAuth({
         email: { label: "Email", type: "email", placeholder: "ton@email.com" },
         password: { label: "Mot de passe", type: "password" },
       },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email et mot de passe requis");
+      async authorize(credentials, req) {
+        const parsedCredentials = loginSchema.safeParse(credentials);
+
+        if (!parsedCredentials.success) {
+          throw new Error("Identifiants invalides");
+        }
+
+        const { email, password } = parsedCredentials.data;
+        const clientIp =
+          req?.headers?.["x-forwarded-for"]?.toString().split(",")[0]?.trim() ||
+          req?.headers?.["x-real-ip"]?.toString().trim() ||
+          "unknown";
+
+        const limit = checkRateLimit(`login:${clientIp}`, 10, 15 * 60 * 1000);
+
+        if (!limit.allowed) {
+          throw new Error("Trop de tentatives. Réessaie plus tard.");
         }
 
         const user = await prisma.users.findUnique({
-          where: {
-            email: credentials.email,
-          },
+          where: { email: email },
         });
 
         if (!user || !user.password_hash) {
@@ -27,7 +46,7 @@ const handler = NextAuth({
         }
 
         const isPasswordValid = await bcrypt.compare(
-          credentials.password,
+          password,
           user.password_hash,
         );
 
@@ -46,6 +65,7 @@ const handler = NextAuth({
   session: {
     strategy: "jwt",
   },
+  secret: process.env.NEXTAUTH_SECRET ?? process.env.BETTER_AUTH_SECRET,
   pages: {
     signIn: "/auth/login",
   },

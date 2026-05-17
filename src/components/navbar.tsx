@@ -1,3 +1,6 @@
+"use client";
+import { ConnectionButton } from "./ConnectionButton";
+
 export default function Navbar() {
   return (
     <nav className="navbar" style={{ padding: "1rem" }}>
@@ -13,6 +16,9 @@ export default function Navbar() {
         </li>
         <li>
           <a href="/profile">Profile</a>
+        </li>
+        <li>
+          <ConnectionButton />
         </li>
       </ul>
     </nav>
