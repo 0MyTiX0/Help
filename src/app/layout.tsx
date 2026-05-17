@@ -1,3 +1,4 @@
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import Navbar from "../components/navbar";
 
 export default function RootLayout({
@@ -8,8 +9,10 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
-        <Navbar />
-        {children}
+        <AuthProvider>
+          <Navbar />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

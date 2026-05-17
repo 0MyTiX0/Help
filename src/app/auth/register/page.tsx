@@ -17,11 +17,27 @@ const registerSchema = z.object({
     .min(2, "Le nom de famille doit faire au moins 2 caractères")
     .optional()
     .or(z.literal("")),
-  birthdate: z.string().optional().or(z.literal("")),
-  email: z.email("L'email doit être valide"),
+  birthdate: z.string().trim().optional().or(z.literal("")),
+  email: z.string().trim().toLowerCase().email("L'email doit être valide"),
   password: z
     .string()
-    .min(6, "Le mot de passe doit faire au moins 6 caractères"),
+    .min(12, "Le mot de passe doit faire au moins 12 caractères")
+    .refine(
+      (value) => /[A-Z]/.test(value),
+      "Le mot de passe doit contenir au moins une majuscule",
+    )
+    .refine(
+      (value) => /[a-z]/.test(value),
+      "Le mot de passe doit contenir au moins une minuscule",
+    )
+    .refine(
+      (value) => /\d/.test(value),
+      "Le mot de passe doit contenir au moins un chiffre",
+    )
+    .refine(
+      (value) => /[!@#$%^&*(),.?":{}|<>]/.test(value),
+      "Le mot de passe doit contenir au moins un caractère spécial",
+    ),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;

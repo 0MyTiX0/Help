@@ -9,7 +9,7 @@ import { z } from "zod";
 import Link from "next/link";
 
 const loginSchema = z.object({
-  email: z.email("L'email doit être valide"),
+  email: z.string().trim().toLowerCase().email("L'email doit être valide"),
   password: z.string().min(1, "Le mot de passe est requis"),
 });
 
