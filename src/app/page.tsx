@@ -9,6 +9,8 @@ import ReviewsSection from "@/components/home/ReviewsSection";
 import { prisma } from "@/lib/prisma";
 import { getReviews } from "@/lib/reviews";
 
+export const dynamic = "force-dynamic";
+
 type FaqCategoryWithFaqs = {
   id: string;
   name: string | null;

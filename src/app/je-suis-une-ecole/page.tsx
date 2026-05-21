@@ -6,6 +6,8 @@ import ReviewsSection from "@/components/home/ReviewsSection";
 import { prisma } from "@/lib/prisma";
 import { getReviews } from "@/lib/reviews";
 
+export const dynamic = "force-dynamic";
+
 const stats = [
   { value: "148", label: "Adhérents" },
   { value: "3 600", label: "Interventions en école" },
