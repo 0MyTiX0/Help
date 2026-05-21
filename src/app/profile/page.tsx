@@ -3,7 +3,13 @@
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-function CircularProgress({ value, size = 160 }: { value: number; size?: number }) {
+function CircularProgress({
+  value,
+  size = 160,
+}: {
+  value: number;
+  size?: number;
+}) {
   const stroke = 12;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -18,7 +24,12 @@ function CircularProgress({ value, size = 160 }: { value: number; size?: number 
         </linearGradient>
       </defs>
       <g transform={`translate(${size / 2}, ${size / 2})`}>
-        <circle r={radius} fill="none" stroke="var(--color-rose-10)" strokeWidth={stroke} />
+        <circle
+          r={radius}
+          fill="none"
+          stroke="var(--color-rose-10)"
+          strokeWidth={stroke}
+        />
         <circle
           r={radius}
           fill="none"
@@ -92,10 +103,16 @@ export default function Profile() {
                     <CircularProgress value={progress} size={160} />
                   </div>
                   <div>
-                    <p className="text-ink text-[1.4rem] font-medium">{progress}%</p>
-                    <p className="mt-2 text-ink/70">{completedCount} tâches complétées sur {totalCount}</p>
+                    <p className="text-ink text-[1.4rem] font-medium">
+                      {progress}%
+                    </p>
+                    <p className="mt-2 text-ink/70">
+                      {completedCount} tâches complétées sur {totalCount}
+                    </p>
                     <div className="mt-4">
-                      <button className="w-full rounded-full border border-rose-100 py-3 text-rose-100">Il te reste à faire tes impôts</button>
+                      <button className="w-full rounded-full border border-rose-100 py-3 text-rose-100">
+                        Il te reste à faire tes impôts
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -106,31 +123,62 @@ export default function Profile() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-ink">Mes démarches à faire</h3>
-                  <p className="text-ink/65">Basé sur ton profil · {profile?.user?.firstname || ''} {profile?.user?.lastname ? `, ${profile.user?.lastname}` : ''}</p>
+                  <p className="text-ink/65">
+                    Basé sur ton profil · {profile?.user?.firstname || ""}{" "}
+                    {profile?.user?.lastname
+                      ? `, ${profile.user?.lastname}`
+                      : ""}
+                  </p>
                 </div>
-                <div className="text-ink/65">{flatTasks.filter(t => !t.is_completed).length} restantes</div>
+                <div className="text-ink/65">
+                  {flatTasks.filter((t) => !t.is_completed).length} restantes
+                </div>
               </div>
 
               <div className="mt-4">
-                <div className="w-full rounded-full bg-amber-10" style={{ height: 12 }}>
-                  <div className="rounded-full bg-rose-100" style={{ width: `${progress}%`, height: 12 }} />
+                <div
+                  className="w-full rounded-full bg-amber-10"
+                  style={{ height: 12 }}
+                >
+                  <div
+                    className="rounded-full bg-rose-100"
+                    style={{ width: `${progress}%`, height: 12 }}
+                  />
                 </div>
               </div>
 
               <div className="mt-4 space-y-3">
                 {todoLists.map((list) => {
                   const total = (list.tasks || []).length;
-                  const done = (list.tasks || []).filter((t: any) => t.is_completed).length;
-                  const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+                  const done = (list.tasks || []).filter(
+                    (t: any) => t.is_completed,
+                  ).length;
+                  const pct =
+                    total === 0 ? 0 : Math.round((done / total) * 100);
                   return (
-                    <div key={list.id} className="rounded-[1.2rem] border border-amber-100 bg-surface p-3 flex items-center justify-between">
+                    <div
+                      key={list.id}
+                      className="rounded-[1.2rem] border border-amber-100 bg-surface p-3 flex items-center justify-between"
+                    >
                       <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-full bg-amber-10 flex items-center justify-center text-ink/80"> </div>
+                        <div className="h-10 w-10 rounded-full bg-amber-10 flex items-center justify-center text-ink/80">
+                          {" "}
+                        </div>
                         <div>
-                          <div className="font-medium text-ink">{list.category?.name || list.title}</div>
-                          <div className="text-ink/65 text-sm">{done}/{total}</div>
-                          <div className="mt-2 w-64 rounded-full bg-amber-10" style={{ height: 8 }}>
-                            <div className="rounded-full bg-amber-100" style={{ width: `${pct}%`, height: 8 }} />
+                          <div className="font-medium text-ink">
+                            {list.category?.name || list.title}
+                          </div>
+                          <div className="text-ink/65 text-sm">
+                            {done}/{total}
+                          </div>
+                          <div
+                            className="mt-2 w-64 rounded-full bg-amber-10"
+                            style={{ height: 8 }}
+                          >
+                            <div
+                              className="rounded-full bg-amber-100"
+                              style={{ width: `${pct}%`, height: 8 }}
+                            />
                           </div>
                         </div>
                       </div>
@@ -142,30 +190,43 @@ export default function Profile() {
             </div>
 
             <div className="mb-6">
-              <h3 className="text-ink">Compte</h3>
-              <div className="mt-3 rounded-[1.2rem] border border-amber-100 bg-amber-10 p-4">
-                <p className="text-ink/65">Nom</p>
-                <p className="mt-1">
-                  {session?.user?.name ||
-                    (profile?.user?.firstname
-                      ? `${profile.user.firstname} ${profile.user.lastname || ""}`
-                      : "-")}
-                </p>
+              <div className="rounded-[1.6rem] border border-amber-100 bg-surface p-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 flex items-center justify-center rounded-full bg-rose-20 text-rose-100 font-bold">
+                    {(
+                      profile?.user?.firstname?.[0] ||
+                      session?.user?.name?.[0] ||
+                      ""
+                    ).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="font-medium text-ink">
+                      {profile?.user?.firstname
+                        ? `${profile.user.firstname} ${profile.user.lastname || ""}`
+                        : session?.user?.name || "-"}
+                    </div>
+                    <div className="text-ink/65 text-sm">
+                      {profile?.user?.birthdate
+                        ? `${Math.max(0, new Date().getFullYear() - new Date(profile.user.birthdate).getFullYear())} ans · Étudiante en alternance`
+                        : "22 ans · Étudiante en alternance"}
+                    </div>
+                  </div>
+                </div>
 
-                <p className="mt-3 text-ink/65">Adresse e-mail</p>
-                <p className="mt-1">
-                  {session?.user?.email || profile?.user?.email || "-"}
-                </p>
-
-                <p className="mt-3 text-ink/65">Date de naissance</p>
-                <p className="mt-1">
-                  {profile?.user?.birthdate
-                    ? new Date(profile.user.birthdate).toLocaleDateString(
-                        "fr-FR",
-                        { day: "2-digit", month: "long", year: "numeric" },
-                      )
-                    : "-"}
-                </p>
+                <div className="mt-6 divide-y divide-amber-10 text-ink/80">
+                  <div className="py-3 flex items-center justify-between">
+                    <div>Compte</div>
+                    <div className="text-ink/60">›</div>
+                  </div>
+                  <div className="py-3 flex items-center justify-between">
+                    <div>Préférences</div>
+                    <div className="text-ink/60">›</div>
+                  </div>
+                  <div className="py-3 flex items-center justify-between">
+                    <div>Notifications</div>
+                    <div className="text-ink/60">›</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -173,7 +234,7 @@ export default function Profile() {
           <aside>
             <div className="mb-6">
               <h3 className="text-ink">Calendrier</h3>
-              <div className="mt-3 rounded-[1.2rem] border border-amber-100 bg-amber-10 p-3">
+              <div className="mt-3 rounded-[1.2rem] border border-amber-100 bg-surface p-3">
                 {(() => {
                   const CalendarAny = Calendar as any;
                   return (
