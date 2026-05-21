@@ -114,6 +114,7 @@ export async function POST(request: Request) {
           firstname: firstname || null,
           lastname: lastname || null,
           birthdate: birthdate ? new Date(birthdate) : null,
+          status: situation || null,
         },
       });
       const profile = await tx.user_profile.create({

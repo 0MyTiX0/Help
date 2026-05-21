@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import FaqSection from "@/components/home/FaqSection";
+import KeyFigures from "@/components/home/KeyFigures";
 import ReviewsSection from "@/components/home/ReviewsSection";
 import { prisma } from "@/lib/prisma";
 import { getReviews } from "@/lib/reviews";
@@ -147,26 +148,7 @@ export default async function JeSuisUneEcole() {
         </div>
       </section>
 
-      <section className="bg-surface py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-6 md:px-10 lg:px-12">
-          <div className="mx-auto max-w-4xl text-center">
-            <h1 className="mt-4 tracking-[-0.03em]">
-              Help. en quelques chiffres
-            </h1>
-          </div>
-
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
-            {stats.map((stat) => (
-              <article key={stat.label} className="text-center">
-                <div className="leading-none">
-                  <h1>{stat.value}</h1>
-                </div>
-                <h2 className="mt-4">{stat.label}</h2>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      <KeyFigures title="Help. en quelques chiffres" stats={stats} />
 
       <section className="bg-amber-10 py-20 sm:py-24">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 md:px-10 lg:grid-cols-[1.05fr_1fr] lg:px-12">
