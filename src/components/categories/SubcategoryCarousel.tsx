@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import type { Swiper as SwiperInstance } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
 
@@ -57,7 +57,6 @@ export default function SubcategoryCarousel({
   subcategories,
 }: Props) {
   const swiperRef = useRef<SwiperInstance | null>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
   const total = subcategories.length;
   const canNavigate = total > 1;
 
@@ -77,7 +76,6 @@ export default function SubcategoryCarousel({
           onSwiper={(swiper) => {
             swiperRef.current = swiper;
           }}
-          onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
           centerInsufficientSlides
           rewind
           speed={650}
@@ -101,7 +99,7 @@ export default function SubcategoryCarousel({
         </Swiper>
 
         {canNavigate ? (
-          <div className="mt-8 flex items-center justify-center gap-4">
+          <div className="mt-8 flex items-center justify-between gap-4">
             <button
               className="flex h-11 w-11 items-center justify-center rounded-full border border-rose-20 bg-surface text-rose-100 transition hover:-translate-y-0.5 hover:bg-rose-10"
               aria-label="Sous-catégorie précédente"
@@ -119,10 +117,6 @@ export default function SubcategoryCarousel({
                 />
               </svg>
             </button>
-
-            <div className="min-w-16 text-center text-sm uppercase tracking-[0.22em] text-rose-100">
-              {`${activeIndex + 1}/${total}`}
-            </div>
 
             <button
               type="button"

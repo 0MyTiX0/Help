@@ -131,19 +131,18 @@ export default function Navbar() {
             id="primary-menu"
             role="dialog"
             aria-modal="true"
-            className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col overflow-y-auto bg-surface shadow-2xl"
+            className="fixed right-0 top-0 z-50 flex h-full w-full max-w-sm flex-col overflow-y-auto bg-amber-100 text-white shadow-2xl"
           >
-            <div className="flex items-center justify-between px-6 py-6 sm:px-8">
-              <span className="text-lg font-semibold">Menu</span>
+            <div className="flex justify-end px-6 pt-6">
               <button
                 type="button"
                 onClick={closeMenu}
                 aria-label="Fermer le menu"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-amber-100 text-white hover:-translate-y-0.5 transition-transform"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white transition-transform hover:-translate-y-0.5"
               >
                 <svg
                   viewBox="0 0 24 24"
-                  className="h-5 w-5"
+                  className="h-6 w-6"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2.4"
@@ -157,94 +156,44 @@ export default function Navbar() {
               </button>
             </div>
 
-            <div className="flex flex-col gap-8 px-6 pb-10 sm:px-8">
-              <section>
-                <h3 className="uppercase tracking-[0.22em] text-rose-100">
-                  Catégories
-                </h3>
-                <ul className="mt-4 flex flex-col gap-1">
-                  {isLoadingCategories ? (
-                    <li>Chargement…</li>
-                  ) : categories.length === 0 ? (
-                    <li>Aucune catégorie disponible.</li>
-                  ) : (
-                    categories.map((category) => (
-                      <li key={category.id}>
-                        <Link
-                          href={`/categories/${slugify(category.name)}`}
-                          onClick={closeMenu}
-                          className="flex items-center justify-between rounded-xl px-3 py-3 transition hover:bg-amber-10"
-                        >
-                          <span>{category.name}</span>
-                          <svg
-                            viewBox="0 0 24 24"
-                            className="h-4 w-4 text-rose-100"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden
-                          >
-                            <path d="M9 6l6 6-6 6" />
-                          </svg>
-                        </Link>
-                      </li>
-                    ))
-                  )}
-                </ul>
-              </section>
+            <nav className="flex flex-1 flex-col items-center justify-center gap-5 px-6 pb-10 text-center">
+              <Link
+                href="/"
+                onClick={closeMenu}
+                className="text-2xl font-bold tracking-tight text-white"
+              >
+                Accueil
+              </Link>
+              <Link
+                href="/je-suis-une-ecole"
+                onClick={closeMenu}
+                className="text-2xl font-bold tracking-tight text-white"
+              >
+                Je suis une école
+              </Link>
+              <Link
+                href="/profile"
+                onClick={closeMenu}
+                className="text-2xl font-bold tracking-tight text-white"
+              >
+                Profil
+              </Link>
 
-              <section>
-                <h3 className="uppercase tracking-[0.22em] text-rose-100">
-                  Mon compte
-                </h3>
-                <ul className="mt-4 flex flex-col gap-1">
-                  <li>
-                    <Link
-                      href="/profile"
-                      onClick={closeMenu}
-                      className="flex items-center justify-between rounded-xl px-3 py-3 transition hover:bg-amber-10"
-                    >
-                      <span>Mon profil</span>
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="h-4 w-4 text-rose-100"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden
-                      >
-                        <path d="M9 6l6 6-6 6" />
-                      </svg>
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/je-suis-une-ecole"
-                      onClick={closeMenu}
-                      className="flex items-center justify-between rounded-xl px-3 py-3 transition hover:bg-amber-10"
-                    >
-                      <span>Je suis une école</span>
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="h-4 w-4 text-rose-100"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden
-                      >
-                        <path d="M9 6l6 6-6 6" />
-                      </svg>
-                    </Link>
-                  </li>
-                </ul>
-              </section>
-            </div>
+              {isLoadingCategories ? (
+                <span className="text-lg text-white/80">Chargement…</span>
+              ) : (
+                categories.map((category) => (
+                  <Link
+                    key={category.id}
+                    href={`/categories/${slugify(category.name)}`}
+                    onClick={closeMenu}
+                    className="text-2xl font-bold tracking-tight text-white"
+                  >
+                    {category.name}
+                  </Link>
+                ))
+              )}
+            </nav>
           </aside>
         </>
       ) : null}

@@ -31,7 +31,7 @@ function iconFor(name?: string | null): { svg: string | null; bg: string } {
   const key = name?.trim().toLowerCase() ?? "";
   const filename = CATEGORY_SVG[key];
   return {
-    svg: filename ? `/images/${filename}.svg` : null,
+    svg: filename ? `/icons/${filename}.svg` : null,
     bg: BG[key] ?? "bg-amber-10",
   };
 }

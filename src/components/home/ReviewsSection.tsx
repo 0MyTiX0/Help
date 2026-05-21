@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import type { Swiper as SwiperInstance } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { getProfileColorStyle } from "@/lib/profileColors";
@@ -48,7 +48,7 @@ function StarRow() {
 function ReviewCard({ review }: { review: ReviewRow }) {
   return (
     <article
-      className="flex h-full min-h-84 w-full flex-col rounded-[1.2rem] bg-[#fff4ea] p-5 sm:min-h-88 lg:min-h-92 xl:min-h-96"
+      className="flex h-full min-h-84 w-full flex-col bg-[#fff4ea] p-5 sm:min-h-88 lg:min-h-92 xl:min-h-96"
       data-review-card
     >
       <div className="flex items-center justify-between gap-3">
@@ -76,7 +76,6 @@ function ReviewCard({ review }: { review: ReviewRow }) {
 
 export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
   const swiperRef = useRef<SwiperInstance | null>(null);
-  const [activeSecondaryIndex, setActiveSecondaryIndex] = useState(0);
   const featuredReview = reviews[0] ?? null;
   const secondaryReviews = reviews.slice(1);
   const totalSecondaryReviews = secondaryReviews.length;
@@ -120,9 +119,9 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
         </div>
 
         {featuredReview ? (
-          <div className="mt-12 rounded-[1.4rem] bg-[#f4dde7] p-8 lg:px-12 lg:py-10">
+          <div className="min-h-90 mt-10 rounded-tr-[20px] rounded-bl-[20px] bg-[#f4dde7] p-8 lg:px-12 lg:py-10 justify-around flex items-center gap-10">
             <div className="flex items-start gap-5">
-              <div className="leading-none text-[#6b1d43]">“</div>
+              <div className="leading-none text-ink text-[100px]">“</div>
               <div className="max-w-4xl">
                 <p className="leading-8">{featuredReview.comment}</p>
                 <div className="mt-6 flex items-center gap-4">
@@ -135,10 +134,8 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                       featuredReview.lastname,
                     )}
                   </div>
-                  <div>
-                    <p>
-                      {featuredReview.firstname} {featuredReview.lastname}
-                    </p>
+                  <div className="font-bold">
+                    {featuredReview.firstname} {featuredReview.lastname}
                     <p>{featuredReview.role}</p>
                   </div>
                 </div>
@@ -150,17 +147,12 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
         {secondaryReviews.length > 0 ? (
           <div className="mt-8 overflow-hidden">
             <div className="mx-auto max-w-full px-4 md:px-8 lg:px-10 xl:px-12 pt-2">
-              {/* controls moved below carousel */}
-
               <div className="relative min-h-112 py-2 sm:min-h-124 sm:py-4 lg:min-h-136 xl:min-h-144">
                 <Swiper
                   className="review-carousel"
                   onSwiper={(swiper) => {
                     swiperRef.current = swiper;
                   }}
-                  onSlideChange={(swiper) =>
-                    setActiveSecondaryIndex(swiper.realIndex)
-                  }
                   centerInsufficientSlides
                   rewind
                   speed={1650}
@@ -193,7 +185,7 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                   ))}
                 </Swiper>
 
-                <div className="absolute left-1/2 bottom-4 z-10 -translate-x-1/2 flex items-center justify-center gap-4">
+                <div className="mt-6 flex items-center justify-between gap-4 px-2">
                   <button
                     type="button"
                     onClick={goToPreviousReview}
@@ -212,12 +204,6 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
                       />
                     </svg>
                   </button>
-
-                  <div className="min-w-16 text-center text-sm uppercase tracking-[0.22em] text-rose-700">
-                    {totalSecondaryReviews > 0
-                      ? `${activeSecondaryIndex + 1}/${totalSecondaryReviews}`
-                      : "0/0"}
-                  </div>
 
                   <button
                     type="button"
