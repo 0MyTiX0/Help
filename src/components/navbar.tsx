@@ -1,9 +1,57 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ConnectionButton } from "./ConnectionButton";
+import { slugify } from "@/lib/slug";
+
+type CategoryItem = {
+  id: string;
+  name: string;
+};
 
 export default function Navbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+  const [hasLoadedCategories, setHasLoadedCategories] = useState(false);
+
+  useEffect(() => {
+    if (!isMenuOpen || hasLoadedCategories) return;
+    let cancelled = false;
+    setIsLoadingCategories(true);
+    fetch("/api/categories")
+      .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+      .then((data) => {
+        if (!cancelled) {
+          setCategories(data.categories ?? []);
+          setHasLoadedCategories(true);
+        }
+      })
+      .catch((err) =>
+        console.error("Erreur lors du chargement des catégories:", err),
+      )
+      .finally(() => {
+        if (!cancelled) setIsLoadingCategories(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isMenuOpen, hasLoadedCategories]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [isMenuOpen]);
+
+  function closeMenu() {
+    setIsMenuOpen(false);
+  }
+
   return (
     <nav className="bg-surface">
       <div className="mx-auto flex h-40 max-w-360 items-center justify-between px-6 sm:px-10 lg:px-12">
@@ -30,8 +78,11 @@ export default function Navbar() {
 
           <button
             type="button"
+            onClick={() => setIsMenuOpen((open) => !open)}
+            aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={isMenuOpen}
+            aria-controls="primary-menu"
             className="inline-flex h-14 w-14 items-center justify-center rounded-full text-white transition-transform duration-200 hover:-translate-y-0.5 bg-amber-100 shadow-[0_8px_20px_rgb(255_176_71/20%)]"
-            aria-label="Menu"
           >
             <svg
               viewBox="0 0 24 24"
@@ -43,9 +94,18 @@ export default function Navbar() {
               strokeLinejoin="round"
               aria-hidden="true"
             >
-              <path d="M4 7h16" />
-              <path d="M4 12h16" />
-              <path d="M4 17h16" />
+              {isMenuOpen ? (
+                <>
+                  <path d="M6 6l12 12" />
+                  <path d="M18 6L6 18" />
+                </>
+              ) : (
+                <>
+                  <path d="M4 7h16" />
+                  <path d="M4 12h16" />
+                  <path d="M4 17h16" />
+                </>
+              )}
             </svg>
           </button>
         </div>
