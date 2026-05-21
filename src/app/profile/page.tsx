@@ -1,293 +1,189 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { prisma } from "@/lib/prisma";
+import { authOptions } from "@/lib/auth";
 
-import { signOut, useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
-import dynamic from "next/dynamic";
-function CircularProgress({
-  value,
-  size = 160,
-}: {
-  value: number;
-  size?: number;
-}) {
-  const stroke = 12;
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const dash = (value / 100) * circumference;
+import ProgressCard from "./ProgressCard";
+import StepsList from "./StepsList";
+import UserCard from "./UserCard";
+import Calendar from "./Calendar";
+import type { DashboardData, DashboardTask } from "./types";
 
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <defs>
-        <linearGradient id="grad" x1="0%" x2="100%">
-          <stop offset="0%" stopColor="var(--color-amber-100)" />
-          <stop offset="100%" stopColor="var(--color-rose-100)" />
-        </linearGradient>
-      </defs>
-      <g transform={`translate(${size / 2}, ${size / 2})`}>
-        <circle
-          r={radius}
-          fill="none"
-          stroke="var(--color-rose-10)"
-          strokeWidth={stroke}
-        />
-        <circle
-          r={radius}
-          fill="none"
-          stroke="url(#grad)"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${circumference - dash}`}
-          transform={`rotate(-90)`}
-        />
-      </g>
-    </svg>
-  );
+export const dynamic = "force-dynamic";
+
+function computeAge(birthdate: Date | null): number | null {
+  if (!birthdate) return null;
+  const diff = Date.now() - birthdate.getTime();
+  return Math.max(0, Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000)));
 }
-const Calendar = dynamic(() => import("react-calendar") as Promise<any>, {
-  ssr: false,
-});
-export default function Profile() {
-  const { data: session } = useSession();
-  const [profile, setProfile] = useState<any>(null);
-  const [todoLists, setTodoLists] = useState<any[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [pRes, tRes] = await Promise.all([
-          fetch("/api/user/profile"),
-          fetch("/api/user/todos"),
-        ]);
+async function loadDashboard(userId: string): Promise<DashboardData> {
+  const [user, todoListsRaw, prefRows] = await Promise.all([
+    prisma.users.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        birthdate: true,
+        status: true,
+      },
+    }),
+    prisma.todo_list.findMany({
+      where: { user_id: userId },
+      include: {
+        category: { select: { id: true, name: true } },
+        todo_list_task: {
+          select: {
+            id: true,
+            description: true,
+            is_completed: true,
+            scheduled_date: true,
+          },
+          orderBy: { scheduled_date: "asc" },
+        },
+      },
+      orderBy: { created_at: "asc" },
+    }),
+    prisma.user_category_preference.findMany({
+      where: { user_profile: { user_id: userId } },
+      include: { category: { select: { id: true, name: true } } },
+    }),
+  ]);
 
-        if (pRes.ok) setProfile(await pRes.json());
-        if (tRes.ok) {
-          const data = await tRes.json();
-          setTodoLists(data.todoLists || []);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
+  if (!user) {
+    throw new Error("Utilisateur introuvable");
+  }
 
-    load();
-    // Calendar is dynamically imported via Next.js `dynamic` above
-  }, []);
+  const todoLists = todoListsRaw.map((l) => ({
+    id: l.id,
+    title: l.title,
+    category: l.category,
+    tasks: l.todo_list_task.map((t) => ({
+      id: t.id,
+      description: t.description,
+      is_completed: !!t.is_completed,
+      scheduled_date: t.scheduled_date ? t.scheduled_date.toISOString() : null,
+    })),
+  }));
 
-  const flatTasks = useMemo(
-    () => todoLists.flatMap((l) => l.tasks || []),
-    [todoLists],
+  const allTasks: DashboardTask[] = todoLists.flatMap((l) => l.tasks);
+  const total = allTasks.length;
+  const done = allTasks.filter((t) => t.is_completed).length;
+  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+
+  const now = Date.now();
+  const pending = allTasks.filter(
+    (t) => !t.is_completed && t.scheduled_date !== null,
   );
-  const completedCount = flatTasks.filter((t) => t.is_completed).length;
-  const totalCount = flatTasks.length;
-  const progress =
-    totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+  const future = pending
+    .filter((t) => new Date(t.scheduled_date!).getTime() >= now)
+    .sort(
+      (a, b) =>
+        new Date(a.scheduled_date!).getTime() -
+        new Date(b.scheduled_date!).getTime(),
+    );
+  const past = pending
+    .filter((t) => new Date(t.scheduled_date!).getTime() < now)
+    .sort(
+      (a, b) =>
+        new Date(b.scheduled_date!).getTime() -
+        new Date(a.scheduled_date!).getTime(),
+    );
+  const nextDeadline = future[0] || past[0] || null;
+
+  const preferences = prefRows
+    .map((r) => r.category)
+    .filter((c): c is { id: string; name: string } => !!c);
+
+  return {
+    user: {
+      id: user.id,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      birthdate: user.birthdate ? user.birthdate.toISOString() : null,
+      status: user.status,
+    },
+    todoLists,
+    preferences,
+    globalProgress: { done, total, percent },
+    nextDeadline,
+  };
+}
+
+export default async function ProfilePage() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) redirect("/auth/login");
+
+  const userId =
+    (session.user as { id?: string }).id ||
+    (
+      await prisma.users.findUnique({
+        where: { email: session.user.email ?? "" },
+        select: { id: true },
+      })
+    )?.id;
+
+  if (!userId) redirect("/auth/login");
+
+  const data = await loadDashboard(userId);
+
+  const age = computeAge(
+    data.user.birthdate ? new Date(data.user.birthdate) : null,
+  );
+  const userLabel = [
+    data.user.firstname,
+    age !== null ? `${age} ans` : null,
+    data.user.status,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const taskDates = Array.from(
+    new Set(
+      data.todoLists
+        .flatMap((l) => l.tasks)
+        .map((t) => t.scheduled_date)
+        .filter((d): d is string => !!d)
+        .map((iso) => {
+          const d = new Date(iso);
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        }),
+    ),
+  );
+
+  const remaining = data.globalProgress.total - data.globalProgress.done;
 
   return (
-    <main className="main">
-      <section className="card">
-        <h1>Profile</h1>
+    <main className="mx-auto w-full max-w-6xl px-6 py-10">
+      <header className="mb-8">
+        <h1>Bonjour {data.user.firstname || ""},</h1>
+        <p className="mt-1 text-ink/70">prête à avancer aujourd'hui ?</p>
+      </header>
 
-        <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-          <div>
-            <div className="mb-6">
-              <h2 className="text-ink">Progression</h2>
-              <p className="mt-2 text-ink/80">
-                Basée sur l'avancement de tes tâches
-              </p>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="flex flex-col gap-6">
+          <ProgressCard
+            percent={data.globalProgress.percent}
+            done={data.globalProgress.done}
+            total={data.globalProgress.total}
+            nextDeadline={data.nextDeadline}
+          />
 
-              <div className="rounded-[1.6rem] border border-rose-100 bg-surface p-6">
-                <h3 className="text-ink">Ma progression globale</h3>
-                <div className="mt-6 flex items-center gap-6">
-                  <div>
-                    <CircularProgress value={progress} size={160} />
-                  </div>
-                  <div>
-                    <p className="text-ink text-[1.4rem] font-medium">
-                      {progress}%
-                    </p>
-                    <p className="mt-2 text-ink/70">
-                      {completedCount} tâches complétées sur {totalCount}
-                    </p>
-                    <div className="mt-4">
-                      <button className="w-full rounded-full border border-rose-100 py-3 text-rose-100">
-                        Il te reste à faire tes impôts
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-ink">Mes démarches à faire</h3>
-                  <p className="text-ink/65">
-                    Basé sur ton profil · {profile?.user?.firstname || ""}{" "}
-                    {profile?.user?.lastname
-                      ? `, ${profile.user?.lastname}`
-                      : ""}
-                  </p>
-                </div>
-                <div className="text-ink/65">
-                  {flatTasks.filter((t) => !t.is_completed).length} restantes
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <div
-                  className="w-full rounded-full bg-amber-10"
-                  style={{ height: 12 }}
-                >
-                  <div
-                    className="rounded-full bg-rose-100"
-                    style={{ width: `${progress}%`, height: 12 }}
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                {todoLists.map((list) => {
-                  const total = (list.tasks || []).length;
-                  const done = (list.tasks || []).filter(
-                    (t: any) => t.is_completed,
-                  ).length;
-                  const pct =
-                    total === 0 ? 0 : Math.round((done / total) * 100);
-                  return (
-                    <div
-                      key={list.id}
-                      className="rounded-[1.2rem] border border-amber-100 bg-surface p-3 flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-full bg-amber-10 flex items-center justify-center text-ink/80">
-                          {" "}
-                        </div>
-                        <div>
-                          <div className="font-medium text-ink">
-                            {list.category?.name || list.title}
-                          </div>
-                          <div className="text-ink/65 text-sm">
-                            {done}/{total}
-                          </div>
-                          <div
-                            className="mt-2 w-64 rounded-full bg-amber-10"
-                            style={{ height: 8 }}
-                          >
-                            <div
-                              className="rounded-full bg-amber-100"
-                              style={{ width: `${pct}%`, height: 8 }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-ink/65">{pct}%</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <div className="rounded-[1.6rem] border border-amber-100 bg-surface p-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 flex items-center justify-center rounded-full bg-rose-20 text-rose-100 font-bold">
-                    {(
-                      profile?.user?.firstname?.[0] ||
-                      session?.user?.name?.[0] ||
-                      ""
-                    ).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="font-medium text-ink">
-                      {profile?.user?.firstname
-                        ? `${profile.user.firstname} ${profile.user.lastname || ""}`
-                        : session?.user?.name || "-"}
-                    </div>
-                    <div className="text-ink/65 text-sm">
-                      {profile?.user?.birthdate
-                        ? `${Math.max(0, new Date().getFullYear() - new Date(profile.user.birthdate).getFullYear())} ans · Étudiante en alternance`
-                        : "22 ans · Étudiante en alternance"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 divide-y divide-amber-10 text-ink/80">
-                  <div className="py-3 flex items-center justify-between">
-                    <div>Compte</div>
-                    <div className="text-ink/60">›</div>
-                  </div>
-                  <div className="py-3 flex items-center justify-between">
-                    <div>Préférences</div>
-                    <div className="text-ink/60">›</div>
-                  </div>
-                  <div className="py-3 flex items-center justify-between">
-                    <div>Notifications</div>
-                    <div className="text-ink/60">›</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <aside>
-            <div className="mb-6">
-              <h3 className="text-ink">Calendrier</h3>
-              <div className="mt-3 rounded-[1.2rem] border border-amber-100 bg-surface p-3">
-                {(() => {
-                  const CalendarAny = Calendar as any;
-                  return (
-                    <CalendarAny
-                      value={selectedDate || new Date()}
-                      onChange={(d: Date) => setSelectedDate(d)}
-                    />
-                  );
-                })()}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h3 className="text-ink">Préférences</h3>
-              <div className="mt-3 rounded-[1.2rem] border border-amber-100 bg-amber-10 p-4">
-                {profile?.categories?.length > 0 ? (
-                  <ul className="space-y-2">
-                    {profile.categories.map((c: any) => (
-                      <li key={c.id} className="text-ink">
-                        {c.name}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-ink/65">Aucun thème sélectionné</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-ink">Notifications</h3>
-              <div className="mt-3 rounded-[1.2rem] border border-amber-100 bg-amber-10 p-4">
-                <p className="text-ink/65">
-                  Aucune notification pour l'instant
-                </p>
-              </div>
-            </div>
-          </aside>
-
-          <div className="col-span-full mt-6">
-            {session && (
-              <button
-                type="button"
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="inline-flex items-center rounded-full px-6 py-3 text-white"
-                style={{ backgroundColor: "var(--color-amber-100)" }}
-              >
-                Se déconnecter
-              </button>
-            )}
-          </div>
+          <UserCard user={data.user} preferences={data.preferences} />
         </div>
-      </section>
+
+        <div className="flex flex-col gap-6">
+          <StepsList
+            todoLists={data.todoLists}
+            globalPercent={data.globalProgress.percent}
+            userLabel={userLabel}
+            remaining={remaining}
+          />
+
+          <Calendar taskDates={taskDates} />
+        </div>
+      </div>
     </main>
   );
 }
