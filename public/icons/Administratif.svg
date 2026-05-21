@@ -1,0 +1,18 @@
+<svg viewBox="60 45 75 105" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M111.378 53.3125C122.147 53.3125 130.878 62.0429 130.878 72.8125V146.349H84C73.2305 146.349 64.5001 137.618 64.5 126.849V53.3125H111.378Z" fill="white" stroke="black"/>
+  <rect x="82.6815" y="48.5" width="29.6456" height="8.44557" rx="4.22278" fill="white" stroke="black"/>
+  <path d="M82.7462 69.75H121.788" stroke="black" stroke-linecap="round"/>
+  <circle cx="76.4492" cy="69.5401" r="2.85842" stroke="black"/>
+  <path d="M82.7462 81.9238H121.788" stroke="black" stroke-linecap="round"/>
+  <circle cx="76.4492" cy="81.9248" r="2.85842" stroke="black"/>
+  <path d="M82.7462 94.0996H121.788" stroke="black" stroke-linecap="round"/>
+  <path d="M76.4491 91.0312C78.0133 91.0312 79.3073 92.3431 79.3075 93.9941C79.3075 95.6454 78.0134 96.958 76.4491 96.958C74.8849 96.958 73.5907 95.6454 73.5907 93.9941C73.591 92.3431 74.885 91.0313 76.4491 91.0312Z" stroke="black"/>
+  <path d="M82.7462 106.273H121.788" stroke="black" stroke-linecap="round"/>
+  <path d="M76.4491 103.205C78.0133 103.205 79.3073 104.517 79.3075 106.168C79.3075 107.819 78.0134 109.132 76.4491 109.132C74.8849 109.132 73.5907 107.819 73.5907 106.168C73.591 104.517 74.885 103.205 76.4491 103.205Z" stroke="black"/>
+  <path d="M82.7462 118.447H121.788" stroke="black" stroke-linecap="round"/>
+  <circle cx="76.4492" cy="118.448" r="2.85842" stroke="black"/>
+  <path d="M82.7462 130.621H121.788" stroke="black" stroke-linecap="round"/>
+  <circle cx="76.4492" cy="130.622" r="2.85842" stroke="black"/>
+  <path d="M73.7604 66.127L80.6872 73.5785" stroke="black" stroke-linecap="round"/>
+  <path d="M73.2357 77.8809L80.1624 85.3324" stroke="black" stroke-linecap="round"/>
+</svg>
