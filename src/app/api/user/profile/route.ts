@@ -25,7 +25,7 @@ export async function GET(request: Request) {
             quizz_statuses: true,
             category_scores: true,
             id: true,
-            user_category_preferences: {
+            user_category_preference: {
               select: { category_id: true },
             },
           },
@@ -34,15 +34,22 @@ export async function GET(request: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ message: "Utilisateur introuvable" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Utilisateur introuvable" },
+        { status: 404 },
+      );
     }
 
     const categoryPrefs =
-      user.user_profile?.user_category_preferences?.map((p) => p.category_id) || [];
+      user.user_profile?.user_category_preference?.map((p) => p.category_id) ||
+      [];
 
     const categories =
       categoryPrefs.length > 0
-        ? await prisma.category.findMany({ where: { id: { in: categoryPrefs } }, select: { id: true, name: true } })
+        ? await prisma.category.findMany({
+            where: { id: { in: categoryPrefs } },
+            select: { id: true, name: true },
+          })
         : [];
 
     return NextResponse.json({ user, categories });

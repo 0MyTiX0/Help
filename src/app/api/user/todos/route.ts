@@ -12,14 +12,28 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const todoLists = await prisma.todo_list.findMany({
+    const todoListsRaw = await prisma.todo_list.findMany({
       where: { user_id: token.sub as string },
       include: {
         category: { select: { id: true, name: true } },
-        tasks: { select: { id: true, description: true, is_completed: true, scheduled_date: true } },
+        todo_list_task: {
+          select: {
+            id: true,
+            description: true,
+            is_completed: true,
+            scheduled_date: true,
+          },
+        },
       },
       orderBy: { id: "asc" },
     });
+
+    const todoLists = todoListsRaw.map((t) => ({
+      id: t.id,
+      title: t.title,
+      category: t.category,
+      tasks: t.todo_list_task || [],
+    }));
 
     return NextResponse.json({ todoLists });
   } catch (error) {
