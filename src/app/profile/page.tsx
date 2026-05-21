@@ -103,48 +103,42 @@ export default function Profile() {
             </div>
 
             <div className="mb-6">
-              <h3 className="text-ink">Démarches à faire</h3>
-              {todoLists.length === 0 ? (
-                <p className="mt-3 text-ink/65">Aucune tâche pour le moment</p>
-              ) : (
-                <div className="mt-4 space-y-4">
-                  {todoLists.map((list) => (
-                    <div
-                      key={list.id}
-                      className="rounded-[1.2rem] border border-amber-100 bg-amber-10 p-4"
-                    >
-                      <p className="font-medium">
-                        {list.category?.name || list.title}
-                      </p>
-                      <ul className="mt-2 space-y-2">
-                        {list.tasks.map((task: any) => (
-                          <li
-                            key={task.id}
-                            className="flex items-start justify-between"
-                          >
-                            <span
-                              className={
-                                task.is_completed
-                                  ? "text-ink/65 line-through"
-                                  : "text-ink"
-                              }
-                            >
-                              {task.description}
-                            </span>
-                            <span className="ml-4 text-ink/65">
-                              {task.scheduled_date
-                                ? new Date(
-                                    task.scheduled_date,
-                                  ).toLocaleDateString()
-                                : ""}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-ink">Mes démarches à faire</h3>
+                  <p className="text-ink/65">Basé sur ton profil · {profile?.user?.firstname || ''} {profile?.user?.lastname ? `, ${profile.user?.lastname}` : ''}</p>
                 </div>
-              )}
+                <div className="text-ink/65">{flatTasks.filter(t => !t.is_completed).length} restantes</div>
+              </div>
+
+              <div className="mt-4">
+                <div className="w-full rounded-full bg-amber-10" style={{ height: 12 }}>
+                  <div className="rounded-full bg-rose-100" style={{ width: `${progress}%`, height: 12 }} />
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {todoLists.map((list) => {
+                  const total = (list.tasks || []).length;
+                  const done = (list.tasks || []).filter((t: any) => t.is_completed).length;
+                  const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+                  return (
+                    <div key={list.id} className="rounded-[1.2rem] border border-amber-100 bg-surface p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-full bg-amber-10 flex items-center justify-center text-ink/80"> </div>
+                        <div>
+                          <div className="font-medium text-ink">{list.category?.name || list.title}</div>
+                          <div className="text-ink/65 text-sm">{done}/{total}</div>
+                          <div className="mt-2 w-64 rounded-full bg-amber-10" style={{ height: 8 }}>
+                            <div className="rounded-full bg-amber-100" style={{ width: `${pct}%`, height: 8 }} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-ink/65">{pct}%</div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="mb-6">
