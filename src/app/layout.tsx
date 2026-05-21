@@ -1,6 +1,7 @@
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import Navbar from "../components/navbar";
 import "./globals.css";
+import "react-calendar/dist/Calendar.css";
 
 export default function RootLayout({
   children,
