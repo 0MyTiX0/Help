@@ -105,14 +105,15 @@ jobs:
             # 5) Basculer le symlink "current" sur la nouvelle release (atomique)
             ln -sfn "\$RELEASE_DIR" "\$APP_PATH/current"
 
-            # 6) (Re)démarrer l'app via PM2
+            # 6) (Re)démarrer l'app via PM2 depuis le symlink "current"
+            #    On delete + start pour forcer PM2 à recharger le cwd (sinon il garde
+            #    le chemin résolu de l'ancienne release et sert un vieux public/).
+            cd "\$APP_PATH/current"
             if pm2 describe help-app > /dev/null 2>&1; then
-              pm2 reload help-app --update-env
-            else
-              cd "\$APP_PATH/current"
-              pm2 start "npm run start" --name help-app --update-env
-              pm2 save
+              pm2 delete help-app
             fi
+            pm2 start "npm run start" --name help-app --update-env --cwd "\$APP_PATH/current"
+            pm2 save
 
             # 7) Nettoyer : ne garder que les 5 dernières releases
             cd "\$APP_PATH/releases"
