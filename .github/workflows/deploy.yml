@@ -1,0 +1,114 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      APP_PATH: ${{ secrets.VPS_APP_PATH }}
+      RELEASE: ${{ github.sha }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build Next.js
+        # NEXT_TELEMETRY_DISABLED pour éviter le ping anonyme pendant le build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: npm run build
+
+      - name: Prepare deployment bundle
+        # On regroupe tout ce dont la prod a besoin dans ./_deploy
+        run: |
+          mkdir -p _deploy
+          cp -r .next _deploy/
+          cp -r public _deploy/
+          cp -r prisma _deploy/
+          cp package.json package-lock.json next.config.* _deploy/ 2>/dev/null || true
+          cp prisma.config.ts _deploy/ 2>/dev/null || true
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create release directory on VPS
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "mkdir -p $APP_PATH/releases/$RELEASE"
+
+      - name: Rsync build to VPS
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            ./_deploy/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:$APP_PATH/releases/$RELEASE/
+
+      - name: Install prod deps, link .env, run migrations, swap symlink, reload PM2
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash -s <<EOF
+            set -euo pipefail
+
+            APP_PATH="$APP_PATH"
+            RELEASE_DIR="\$APP_PATH/releases/$RELEASE"
+
+            cd "\$RELEASE_DIR"
+
+            # 1) Lier le .env partagé (jamais écrasé par les déploiements)
+            ln -sfn "\$APP_PATH/shared/.env" "\$RELEASE_DIR/.env"
+
+            # 2) Installer uniquement les deps de prod
+            npm ci --omit=dev
+
+            # 3) Régénérer le client Prisma côté VPS (binaires natifs)
+            npx prisma generate
+
+            # 4) Appliquer les migrations Prisma (si tu utilises prisma migrate)
+            #    Décommente quand tu auras des migrations versionnées :
+            # npx prisma migrate deploy
+
+            # 5) Basculer le symlink "current" sur la nouvelle release (atomique)
+            ln -sfn "\$RELEASE_DIR" "\$APP_PATH/current"
+
+            # 6) (Re)démarrer l'app via PM2
+            if pm2 describe help-app > /dev/null 2>&1; then
+              pm2 reload help-app --update-env
+            else
+              cd "\$APP_PATH/current"
+              pm2 start "npm run start" --name help-app --update-env
+              pm2 save
+            fi
+
+            # 7) Nettoyer : ne garder que les 5 dernières releases
+            cd "\$APP_PATH/releases"
+            ls -1t | tail -n +6 | xargs -r rm -rf
+          EOF

@@ -4,7 +4,9 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start --webpack",
-    "ssh-tunnel": "ssh -L 5432:localhost:5432 root@192.162.71.191 -N"
+    "ssh-tunnel": "ssh -L 5432:localhost:5432 root@192.162.71.191 -N",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
@@ -35,10 +37,12 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.1.7",
     "postcss": "^8.5.14",
     "prisma": "^7.7.0",
     "tailwindcss": "^4.3.0",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
   }
 }
