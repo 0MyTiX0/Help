@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signOut } from "next-auth/react";
 import type { DashboardCategory, DashboardUser } from "./types";
 
-type Tab = "menu" | "compte" | "preferences";
+type Tab = "menu" | "compte" | "preferences" | "notifications";
 
 export default function UserCard({
   user,
@@ -33,7 +33,8 @@ export default function UserCard({
     : null;
 
   return (
-    <div className="rounded-[1.6rem] border border-amber-20 bg-surface p-6">
+    <>
+    <div className="rounded-tr-[20px] rounded-bl-[20px] border border-black/10 bg-surface p-6 shadow-sm">
       <div className="flex items-center gap-4">
         <div className="h-12 w-12 rounded-full bg-rose-20 text-rose-100 font-bold flex items-center justify-center">
           {initials}
@@ -50,7 +51,7 @@ export default function UserCard({
       </div>
 
       {tab === "menu" && (
-        <ul className="mt-6 divide-y divide-amber-10 text-ink/85">
+        <ul className="mt-5 border-t border-black/10 divide-y divide-black/10 text-ink/85">
           <li>
             <button
               type="button"
@@ -58,7 +59,7 @@ export default function UserCard({
               className="w-full flex items-center justify-between py-3 hover:text-rose-100 transition"
             >
               <span>Compte</span>
-              <span className="text-ink/50" aria-hidden>
+              <span className="text-ink/60 text-2xl leading-none" aria-hidden>
                 ›
               </span>
             </button>
@@ -70,7 +71,7 @@ export default function UserCard({
               className="w-full flex items-center justify-between py-3 hover:text-rose-100 transition"
             >
               <span>Préférences</span>
-              <span className="text-ink/50" aria-hidden>
+              <span className="text-ink/60 text-2xl leading-none" aria-hidden>
                 ›
               </span>
             </button>
@@ -78,11 +79,13 @@ export default function UserCard({
           <li>
             <button
               type="button"
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="w-full flex items-center justify-between py-3 text-rose-100"
+              onClick={() => setTab("notifications")}
+              className="w-full flex items-center justify-between py-3 hover:text-rose-100 transition"
             >
-              <span>Se déconnecter</span>
-              <span aria-hidden>›</span>
+              <span>Notifications</span>
+              <span className="text-ink/60 text-2xl leading-none" aria-hidden>
+                ›
+              </span>
             </button>
           </li>
         </ul>
@@ -178,6 +181,52 @@ export default function UserCard({
           )}
         </div>
       )}
+
+      {tab === "notifications" && (
+        <div className="mt-6">
+          <button
+            type="button"
+            onClick={() => setTab("menu")}
+            className="text-sm text-ink/60 hover:text-ink mb-3"
+          >
+            ‹ Retour
+          </button>
+          <p className="text-sm text-ink/65 mb-4">
+            Préférences de notifications
+          </p>
+          <ul className="space-y-3 text-sm text-ink/85">
+            <li className="flex items-center justify-between">
+              <span>Rappels de démarches</span>
+              <input
+                type="checkbox"
+                defaultChecked
+                className="accent-rose-100"
+              />
+            </li>
+            <li className="flex items-center justify-between">
+              <span>Nouvelles aides disponibles</span>
+              <input
+                type="checkbox"
+                defaultChecked
+                className="accent-rose-100"
+              />
+            </li>
+            <li className="flex items-center justify-between">
+              <span>Newsletter mensuelle</span>
+              <input type="checkbox" className="accent-rose-100" />
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
+
+    <button
+      type="button"
+      onClick={() => signOut({ callbackUrl: "/" })}
+      className="mt-4 w-full rounded-full border border-rose-100 text-rose-100 py-2 font-medium hover:bg-rose-10 transition"
+    >
+      Se déconnecter
+    </button>
+    </>
   );
 }

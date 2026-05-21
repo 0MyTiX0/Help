@@ -322,7 +322,7 @@ export default function RegisterPage() {
                   <FieldLabel>Mot de passe</FieldLabel>
                   <input
                     type="password"
-                    placeholder="8 caractères minimum"
+                    placeholder="12 caractères minimum"
                     {...register("password")}
                     className="w-full rounded-[1.2rem] border border-amber-100 bg-amber-10 px-4 py-4 text-[1rem] text-ink outline-none transition focus:border-rose-100 focus:bg-surface"
                   />
