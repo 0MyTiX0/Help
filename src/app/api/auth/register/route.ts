@@ -135,27 +135,24 @@ export async function POST(request: Request) {
             category_id: category.id,
           })),
         });
-
-        for (const category of categoryRecords) {
-          const todoList = await tx.todo_list.create({
-            data: {
-              user_id: user.id,
-              category_id: category.id,
-              title: `Diagnostic : ${category.name}`,
-            },
-          });
-
-          await tx.todo_list_task.create({
-            data: {
-              todo_list_id: todoList.id,
-              description:
-                "Faire le questionnaire rapide pour débloquer les aides",
-              scheduled_date: null,
-              is_completed: false,
-            },
-          });
-        }
       }
+
+      await tx.todo_list.create({
+        data: {
+          user_id: user.id,
+          category_id: null,
+          title: "Mes premières démarches",
+          todo_list_task: {
+            create: [
+              {
+                description: "Répondre au questionnaire global",
+                scheduled_date: null,
+                is_completed: false,
+              },
+            ],
+          },
+        },
+      });
 
       return user;
     });
