@@ -11,6 +11,17 @@ import {
   type AnimationPlaybackControls,
 } from "framer-motion";
 
+function slugify(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/['\u2019]/g, "")
+    .replace(/&/g, "et")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export type WheelCategory = {
   id: string;
   name: string;
@@ -191,7 +202,7 @@ export default function CategoryWheel({ categories }: Props) {
                       onClick={(e) => {
                         e.stopPropagation();
                         if (isActive) {
-                          window.location.href = `/categories/${category.id}`;
+                          window.location.href = `/categories/${slugify(category.name)}`;
                         } else {
                           goToIndex(i);
                         }
@@ -245,7 +256,7 @@ export default function CategoryWheel({ categories }: Props) {
                 draggable={false}
               />
               <Link
-                href={`/categories/${activeCategory.id}`}
+                href={`/categories/${slugify(activeCategory.name)}`}
                 className="pointer-events-auto rounded-full bg-rose-100 px-7 py-3 text-white shadow-[0_12px_28px_rgba(187,34,95,0.28)] transition-transform hover:-translate-y-0.5"
                 onPointerDown={(e) => e.stopPropagation()}
                 aria-label={`Découvrir ${activeCategory.name}`}
