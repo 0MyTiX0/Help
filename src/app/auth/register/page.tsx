@@ -180,6 +180,7 @@ export default function RegisterPage() {
           lastname: data.lastname,
           email: data.email,
           password: data.password,
+          birthdate: data.birthdate || "",
           situation: data.situation || "",
           selectedCategories: selectedCategoryIds,
         }),
@@ -288,6 +289,20 @@ export default function RegisterPage() {
                       </p>
                     )}
                   </div>
+                </div>
+
+                <div>
+                  <FieldLabel>Date de naissance</FieldLabel>
+                  <input
+                    type="date"
+                    {...register("birthdate")}
+                    className="w-full rounded-[1.2rem] border border-amber-100 bg-amber-10 px-4 py-4 text-[1rem] text-ink outline-none transition focus:border-rose-100 focus:bg-surface"
+                  />
+                  {errors.birthdate && (
+                    <p className="mt-2 text-rose-100">
+                      {errors.birthdate.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -491,6 +506,22 @@ export default function RegisterPage() {
                   <div>
                     <p className="text-ink/65">Adresse e-mail</p>
                     <p className="mt-1">{watchedValues.email || "-"}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-ink/65">Date de naissance</p>
+                    <p className="mt-1">
+                      {watchedValues.birthdate
+                        ? new Date(watchedValues.birthdate).toLocaleDateString(
+                            "fr-FR",
+                            {
+                              day: "2-digit",
+                              month: "long",
+                              year: "numeric",
+                            },
+                          )
+                        : "-"}
+                    </p>
                   </div>
 
                   <div>
