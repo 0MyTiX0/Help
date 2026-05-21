@@ -3,13 +3,43 @@
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+function CircularProgress({ value, size = 160 }: { value: number; size?: number }) {
+  const stroke = 12;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dash = (value / 100) * circumference;
 
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <defs>
+        <linearGradient id="grad" x1="0%" x2="100%">
+          <stop offset="0%" stopColor="var(--color-amber-100)" />
+          <stop offset="100%" stopColor="var(--color-rose-100)" />
+        </linearGradient>
+      </defs>
+      <g transform={`translate(${size / 2}, ${size / 2})`}>
+        <circle r={radius} fill="none" stroke="var(--color-rose-10)" strokeWidth={stroke} />
+        <circle
+          r={radius}
+          fill="none"
+          stroke="url(#grad)"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circumference - dash}`}
+          transform={`rotate(-90)`}
+        />
+      </g>
+    </svg>
+  );
+}
+const Calendar = dynamic(() => import("react-calendar") as Promise<any>, {
+  ssr: false,
+});
 export default function Profile() {
   const { data: session } = useSession();
   const [profile, setProfile] = useState<any>(null);
   const [todoLists, setTodoLists] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const [CalendarComp, setCalendarComp] = useState<any>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -30,23 +60,17 @@ export default function Profile() {
     };
 
     load();
-    // try to import react-calendar dynamically
-    (async () => {
-      try {
-        // use eval to avoid TS compile-time module resolution
-        // eslint-disable-next-line no-eval
-        const mod = await eval('import("react-calendar")');
-        setCalendarComp(() => mod.default || mod);
-      } catch (err) {
-        // not installed — CalendarComp stays null
-      }
-    })();
+    // Calendar is dynamically imported via Next.js `dynamic` above
   }, []);
 
-  const flatTasks = useMemo(() => todoLists.flatMap((l) => l.tasks || []), [todoLists]);
+  const flatTasks = useMemo(
+    () => todoLists.flatMap((l) => l.tasks || []),
+    [todoLists],
+  );
   const completedCount = flatTasks.filter((t) => t.is_completed).length;
   const totalCount = flatTasks.length;
-  const progress = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+  const progress =
+    totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
 
   return (
     <main className="main">
@@ -57,15 +81,25 @@ export default function Profile() {
           <div>
             <div className="mb-6">
               <h2 className="text-ink">Progression</h2>
-              <p className="mt-2 text-ink/80">Basée sur l'avancement de tes tâches</p>
+              <p className="mt-2 text-ink/80">
+                Basée sur l'avancement de tes tâches
+              </p>
 
-              <div className="mt-4 w-full rounded-full bg-amber-10" style={{ height: 16 }}>
-                <div
-                  className="rounded-full bg-rose-100"
-                  style={{ width: `${progress}%`, height: 16 }}
-                />
+              <div className="rounded-[1.6rem] border border-rose-100 bg-surface p-6">
+                <h3 className="text-ink">Ma progression globale</h3>
+                <div className="mt-6 flex items-center gap-6">
+                  <div>
+                    <CircularProgress value={progress} size={160} />
+                  </div>
+                  <div>
+                    <p className="text-ink text-[1.4rem] font-medium">{progress}%</p>
+                    <p className="mt-2 text-ink/70">{completedCount} tâches complétées sur {totalCount}</p>
+                    <div className="mt-4">
+                      <button className="w-full rounded-full border border-rose-100 py-3 text-rose-100">Il te reste à faire tes impôts</button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p className="mt-2">{progress}% complété ({completedCount}/{totalCount})</p>
             </div>
 
             <div className="mb-6">
@@ -75,15 +109,35 @@ export default function Profile() {
               ) : (
                 <div className="mt-4 space-y-4">
                   {todoLists.map((list) => (
-                    <div key={list.id} className="rounded-[1.2rem] border border-amber-100 bg-amber-10 p-4">
-                      <p className="font-medium">{list.category?.name || list.title}</p>
+                    <div
+                      key={list.id}
+                      className="rounded-[1.2rem] border border-amber-100 bg-amber-10 p-4"
+                    >
+                      <p className="font-medium">
+                        {list.category?.name || list.title}
+                      </p>
                       <ul className="mt-2 space-y-2">
                         {list.tasks.map((task: any) => (
-                          <li key={task.id} className="flex items-start justify-between">
-                            <span className={task.is_completed ? "text-ink/65 line-through" : "text-ink"}>
+                          <li
+                            key={task.id}
+                            className="flex items-start justify-between"
+                          >
+                            <span
+                              className={
+                                task.is_completed
+                                  ? "text-ink/65 line-through"
+                                  : "text-ink"
+                              }
+                            >
                               {task.description}
                             </span>
-                            <span className="ml-4 text-ink/65">{task.scheduled_date ? new Date(task.scheduled_date).toLocaleDateString() : ""}</span>
+                            <span className="ml-4 text-ink/65">
+                              {task.scheduled_date
+                                ? new Date(
+                                    task.scheduled_date,
+                                  ).toLocaleDateString()
+                                : ""}
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -97,13 +151,27 @@ export default function Profile() {
               <h3 className="text-ink">Compte</h3>
               <div className="mt-3 rounded-[1.2rem] border border-amber-100 bg-amber-10 p-4">
                 <p className="text-ink/65">Nom</p>
-                <p className="mt-1">{session?.user?.name || (profile?.user?.firstname ? `${profile.user.firstname} ${profile.user.lastname || ''}` : "-")}</p>
+                <p className="mt-1">
+                  {session?.user?.name ||
+                    (profile?.user?.firstname
+                      ? `${profile.user.firstname} ${profile.user.lastname || ""}`
+                      : "-")}
+                </p>
 
                 <p className="mt-3 text-ink/65">Adresse e-mail</p>
-                <p className="mt-1">{session?.user?.email || profile?.user?.email || "-"}</p>
+                <p className="mt-1">
+                  {session?.user?.email || profile?.user?.email || "-"}
+                </p>
 
                 <p className="mt-3 text-ink/65">Date de naissance</p>
-                <p className="mt-1">{profile?.user?.birthdate ? new Date(profile.user.birthdate).toLocaleDateString("fr-FR", { day: '2-digit', month: 'long', year: 'numeric' }) : "-"}</p>
+                <p className="mt-1">
+                  {profile?.user?.birthdate
+                    ? new Date(profile.user.birthdate).toLocaleDateString(
+                        "fr-FR",
+                        { day: "2-digit", month: "long", year: "numeric" },
+                      )
+                    : "-"}
+                </p>
               </div>
             </div>
           </div>
@@ -112,11 +180,15 @@ export default function Profile() {
             <div className="mb-6">
               <h3 className="text-ink">Calendrier</h3>
               <div className="mt-3 rounded-[1.2rem] border border-amber-100 bg-amber-10 p-3">
-                {CalendarComp ? (
-                  <CalendarComp value={selectedDate || new Date()} onChange={(d: Date) => setSelectedDate(d)} />
-                ) : (
-                  <div className="text-ink/65">Calendrier (installer `react-calendar` pour l'affichage)</div>
-                )}
+                {(() => {
+                  const CalendarAny = Calendar as any;
+                  return (
+                    <CalendarAny
+                      value={selectedDate || new Date()}
+                      onChange={(d: Date) => setSelectedDate(d)}
+                    />
+                  );
+                })()}
               </div>
             </div>
 
@@ -126,7 +198,9 @@ export default function Profile() {
                 {profile?.categories?.length > 0 ? (
                   <ul className="space-y-2">
                     {profile.categories.map((c: any) => (
-                      <li key={c.id} className="text-ink">{c.name}</li>
+                      <li key={c.id} className="text-ink">
+                        {c.name}
+                      </li>
                     ))}
                   </ul>
                 ) : (
@@ -138,7 +212,9 @@ export default function Profile() {
             <div>
               <h3 className="text-ink">Notifications</h3>
               <div className="mt-3 rounded-[1.2rem] border border-amber-100 bg-amber-10 p-4">
-                <p className="text-ink/65">Aucune notification pour l'instant</p>
+                <p className="text-ink/65">
+                  Aucune notification pour l'instant
+                </p>
               </div>
             </div>
           </aside>
@@ -147,7 +223,7 @@ export default function Profile() {
             {session && (
               <button
                 type="button"
-                onClick={() => signOut({ callbackUrl: '/' })}
+                onClick={() => signOut({ callbackUrl: "/" })}
                 className="inline-flex items-center rounded-full px-6 py-3 text-white"
                 style={{ backgroundColor: "var(--color-amber-100)" }}
               >
