@@ -27,6 +27,8 @@ const defaultSteps: Step[] = [
     number: "03.",
     title: "help. t'accompagne pas à pas",
     text: "Une interface de progression te montre où tu en es, avec des notifications au bon moment, et un accès direct aux guides et liens officiels.",
+    imageSrc: "/images/HowItWorks_3.png",
+    imageAlt: "Interface de progression Help.",
   },
 ];
 
