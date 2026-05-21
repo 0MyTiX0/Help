@@ -1,7 +1,9 @@
 "use client";
-import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export function ConnectionButton() {
+  const router = useRouter();
   const { data: session, status } = useSession();
 
   if (status === "loading") {
@@ -24,6 +26,7 @@ export function ConnectionButton() {
     return (
       <button
         type="button"
+        onClick={() => router.push("/auth/login")}
         className="inline-flex h-14 w-14 items-center justify-center rounded-full text-white transition-transform duration-200 hover:-translate-y-0.5"
         style={{
           backgroundColor: "var(--color-amber-100)",
@@ -46,13 +49,13 @@ export function ConnectionButton() {
   return (
     <button
       type="button"
-      onClick={() => signOut()}
+      onClick={() => router.push("/profile")}
       className="inline-flex h-14 w-14 items-center justify-center rounded-full text-white transition-transform duration-200 hover:-translate-y-0.5"
       style={{
         backgroundColor: "var(--color-amber-100)",
         boxShadow: "0 8px 20px var(--color-amber-20)",
       }}
-      aria-label={`Déconnexion de ${session.user?.name ?? "votre compte"}`}
+      aria-label={`Aller au profil de ${session.user?.name ?? "votre compte"}`}
     >
       <svg
         viewBox="0 0 24 24"
