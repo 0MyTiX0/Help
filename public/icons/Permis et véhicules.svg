@@ -1,7 +1,7 @@
 <svg viewBox="145 465 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M250 501.5H149.5V528C149.5 533.247 153.753 537.5 159 537.5H259.5V511L259.487 510.511C259.233 505.491 255.083 501.5 250 501.5Z" stroke="black"/>
-  <circle cx="9.5" cy="9.5" r="9" transform="matrix(-1 0 0 1 242 528)" fill="white" stroke="black"/>
-  <circle cx="9.5" cy="9.5" r="9" transform="matrix(-1 0 0 1 186 528)" fill="white" stroke="black"/>
+  <circle cx="9.5" cy="9.5" r="9" transform="matrix(-1 0 0 1 242 528)" stroke="black"/>
+  <circle cx="9.5" cy="9.5" r="9" transform="matrix(-1 0 0 1 186 528)" stroke="black"/>
   <path d="M238.5 501.5L225.875 474.073C224.732 471.59 222.249 470 219.516 470H176.587C173.801 470 171.281 471.651 170.169 474.205L158.5 501" stroke="black" stroke-linecap="round"/>
   <path d="M187.5 470.5V501" stroke="black" stroke-linecap="round"/>
   <path d="M189 507C190.167 508.667 194.5 511.5 198.5 507" stroke="black" stroke-linecap="round"/>

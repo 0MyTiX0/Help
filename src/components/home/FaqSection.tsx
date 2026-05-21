@@ -145,7 +145,7 @@ export default function FaqSection({
             >
               {visibleFaqs.map((faq) => (
                 <SwiperSlide key={faq.id} className="h-auto py-4">
-                  <article className="flex h-full min-h-72 flex-col bg-[#fff4ea] p-5 shadow-[0_18px_32px_rgba(21,12,18,0.04)]">
+                  <article className="flex h-full min-h-72 flex-col bg-[#fff4ea] p-5">
                     <span className="inline-flex self-start rounded-full bg-rose-50 px-4 py-2 uppercase tracking-[0.18em] text-rose-700">
                       {faq.categoryName}
                     </span>
