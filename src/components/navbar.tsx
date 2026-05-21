@@ -50,6 +50,86 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+
+      {isMenuOpen ? (
+        <>
+          <button
+            type="button"
+            aria-label="Fermer le menu"
+            onClick={closeMenu}
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+          />
+
+          <aside
+            id="primary-menu"
+            role="dialog"
+            aria-modal="true"
+            className="fixed right-0 top-0 z-50 flex h-full w-full max-w-sm flex-col overflow-y-auto bg-amber-100 text-white shadow-2xl"
+          >
+            <div className="flex justify-end px-6 pt-6">
+              <button
+                type="button"
+                onClick={closeMenu}
+                aria-label="Fermer le menu"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white transition-transform hover:-translate-y-0.5"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <path d="M6 6l12 12" />
+                  <path d="M18 6L6 18" />
+                </svg>
+              </button>
+            </div>
+
+            <nav className="flex flex-1 flex-col items-center justify-center gap-5 px-6 pb-10 text-center">
+              <Link
+                href="/"
+                onClick={closeMenu}
+                className="text-2xl font-bold tracking-tight text-white"
+              >
+                Accueil
+              </Link>
+              <Link
+                href="/je-suis-une-ecole"
+                onClick={closeMenu}
+                className="text-2xl font-bold tracking-tight text-white"
+              >
+                Je suis une école
+              </Link>
+              <Link
+                href="/profile"
+                onClick={closeMenu}
+                className="text-2xl font-bold tracking-tight text-white"
+              >
+                Profil
+              </Link>
+
+              {isLoadingCategories ? (
+                <span className="text-lg text-white/80">Chargement…</span>
+              ) : (
+                categories.map((category) => (
+                  <Link
+                    key={category.id}
+                    href={`/categories/${slugify(category.name)}`}
+                    onClick={closeMenu}
+                    className="text-2xl font-bold tracking-tight text-white"
+                  >
+                    {category.name}
+                  </Link>
+                ))
+              )}
+            </nav>
+          </aside>
+        </>
+      ) : null}
     </nav>
   );
 }
