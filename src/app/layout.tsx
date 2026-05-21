@@ -1,5 +1,6 @@
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import Navbar from "../components/navbar";
+import "./globals.css";
 
 export default function RootLayout({
   children,
@@ -8,7 +9,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body>
+      <body className="min-h-screen bg-surface text-ink antialiased">
         <AuthProvider>
           <Navbar />
           {children}

@@ -1,0 +1,78 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400&family=Glimber:wght@700&display=swap");
+@import "tailwindcss";
+@import "swiper/css";
+
+@theme {
+  --color-ink: #000005;
+  --color-surface: #fffdff;
+
+  --color-amber-100: #ffb047;
+  --color-amber-80: #ffbf6c;
+  --color-amber-60: #ffcf91;
+  --color-amber-40: #ffdeb5;
+  --color-amber-20: #ffeeda;
+  --color-amber-10: #fff5ed;
+
+  --color-rose-100: #bb225f;
+  --color-rose-80: #c94e7f;
+  --color-rose-60: #d67a9f;
+  --color-rose-40: #e4a5bf;
+  --color-rose-20: #f1d1df;
+  --color-rose-10: #f8e7ef;
+
+  /* Profile avatar background palette */
+  --color-profile-1: #ffb047; /* amber */
+  --color-profile-2: #bb225f; /* rose */
+  --color-profile-3: #4f46e5; /* indigo */
+  --color-profile-4: #059669; /* green */
+  --color-profile-5: #14b8a6; /* teal */
+  --color-profile-6: #2563eb; /* blue */
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+}
+
+p {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+h1 {
+  font-family: "Glimber", sans-serif;
+  font-weight: 700;
+  font-size: 36px;
+  line-height: 1.2;
+}
+
+h2 {
+  font-family: "Glimber", sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+h3 {
+  font-family: "Glimber", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+@utility rose-card-frame {
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--color-rose-100);
+  border-top-right-radius: 20px;
+  border-bottom-left-radius: 20px;
+}

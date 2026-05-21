@@ -5,3 +5,4 @@ out
 *.tsbuildinfo
 
 /src/generated/prisma
+.agent-frontend-instructions.md

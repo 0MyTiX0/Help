@@ -36,6 +36,8 @@ const registerSchema = z.object({
       (value) => /[!@#$%^&*(),.?":{}|<>]/.test(value),
       "Le mot de passe doit contenir au moins un caractère spécial",
     ),
+  situation: z.string().optional().or(z.literal("")),
+  selectedCategories: z.array(z.string().uuid()).optional().default([]),
 });
 
 export async function POST(request: Request) {
@@ -65,7 +67,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email, password, firstname, lastname, birthdate } = validation.data;
+    const {
+      email,
+      password,
+      firstname,
+      lastname,
+      birthdate,
+      situation,
+      selectedCategories,
+    } = validation.data;
 
     const existingUser = await prisma.users.findUnique({
       where: { email: email },
@@ -80,14 +90,73 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await prisma.users.create({
-      data: {
-        email: email,
-        password_hash: hashedPassword,
-        firstname: firstname || null,
-        lastname: lastname || null,
-        birthdate: birthdate ? new Date(birthdate) : null,
+    const categoryRecords =
+      selectedCategories.length > 0
+        ? await prisma.category.findMany({
+            where: { id: { in: selectedCategories } },
+            select: { id: true, name: true },
+          })
+        : [];
+
+    const categoryScoreMap = categoryRecords.reduce<Record<string, number>>(
+      (scores, category) => {
+        scores[category.id] = 1;
+        return scores;
       },
+      {},
+    );
+
+    const newUser = await prisma.$transaction(async (tx) => {
+      const user = await tx.users.create({
+        data: {
+          email,
+          password_hash: hashedPassword,
+          firstname: firstname || null,
+          lastname: lastname || null,
+          birthdate: birthdate ? new Date(birthdate) : null,
+        },
+      });
+      const profile = await tx.user_profile.create({
+        data: {
+          user_id: user.id,
+          category_scores: categoryScoreMap,
+          quizz_statuses: {
+            situation: situation || null,
+            onboardingStep: 3,
+          },
+        },
+      });
+
+      if (categoryRecords.length > 0) {
+        await (tx as any).user_category_preference.createMany({
+          data: categoryRecords.map((category) => ({
+            user_profile_id: profile.id,
+            category_id: category.id,
+          })),
+        });
+
+        for (const category of categoryRecords) {
+          const todoList = await tx.todo_list.create({
+            data: {
+              user_id: user.id,
+              category_id: category.id,
+              title: `Diagnostic : ${category.name}`,
+            },
+          });
+
+          await tx.todo_list_task.create({
+            data: {
+              todo_list_id: todoList.id,
+              description:
+                "Faire le questionnaire rapide pour débloquer les aides",
+              scheduled_date: null,
+              is_completed: false,
+            },
+          });
+        }
+      }
+
+      return user;
     });
 
     return NextResponse.json(
