@@ -3,7 +3,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
-    "start": "next start --webpack",
+    "start": "next start",
     "ssh-tunnel": "ssh -L 5432:localhost:5432 root@192.162.71.191 -N",
     "test": "vitest run",
     "test:watch": "vitest"
