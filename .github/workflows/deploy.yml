@@ -18,6 +18,12 @@ jobs:
     env:
       APP_PATH: ${{ secrets.VPS_APP_PATH }}
       RELEASE: ${{ github.sha }}
+      # Variables nécessaires au chargement de prisma.config.ts et au build Next.
+      # Valeurs factices : aucune connexion réelle n'est faite côté CI
+      # (la vraie DATABASE_URL est sur le VPS dans /var/www/help/shared/.env).
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci?schema=public"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXTAUTH_SECRET: "ci-dummy-secret-not-used-at-runtime"
 
     steps:
       - name: Checkout
